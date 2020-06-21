@@ -1,6 +1,6 @@
 provider "aws" {
   version = ">= 2.66.0"
-  region  = "us-east-1"
+  region  = var.region
 }
 
 data "aws_availability_zones" "available" {}
