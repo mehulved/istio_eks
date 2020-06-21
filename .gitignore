@@ -1,6 +1,7 @@
 *.swp
 *.swo
-terraform/.terraform/
+terraform/.terraform*
 terraform/terraform.tfstate*
+terraform/tfplan
 terraform/kubeconfig*
 terraform/*.dis
