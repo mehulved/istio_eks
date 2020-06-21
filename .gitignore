@@ -5,3 +5,4 @@ terraform/terraform.tfstate*
 terraform/tfplan
 terraform/kubeconfig*
 terraform/*.dis
+istio/
