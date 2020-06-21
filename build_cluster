@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "Setting variables for AWS credentials..."
+export AWS_PROFILE=istio
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+
+echo "Provisioning infrastructure..."
+cd terraform
+terraform init -input=false
+terraform plan -out=tfplan -input=false
+terraform apply -input=false tfplan
+echo "Infrastructure provisioned."
+
+echo "Setting kubectl configuration to use the created cluster..."
+CLUSTER_REGION=$(terraform output | grep region | cut -d "=" -f 2)
+CLUSTER_NAME=$(terraform output | grep cluster_name | cut -d "=" -f 2)
+aws eks --region $CLUSTER_REGION update-kubeconfig --name $CLUSTER_NAME
+
