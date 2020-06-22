@@ -1,6 +1,8 @@
 #!/bin/bash
 kubectl apply -f istio/samples/bookinfo/platform/kube/bookinfo.yaml 
 kubectl apply -f istio/samples/bookinfo/networking/bookinfo-gateway.yaml
+kubectl apply -f istio/samples/bookinfo/networking/destination-rule-all.yaml
+kubectl apply -f istio/samples/bookinfo/networking/virtual-service-reviews-v2-v3.yaml
 ./istio/bin/istioctl analyze
 kubectl get svc istio-ingressgateway -n istio-system
 export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
