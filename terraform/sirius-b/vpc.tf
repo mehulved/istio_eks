@@ -3,10 +3,18 @@ provider "aws" {
   region  = var.region
 }
 
+terraform {
+  backend "s3" {
+    bucket = "jupiter"
+    key    = "cluster/sirius-b"
+    region = "us-east-1"
+  }
+}
+
 data "aws_availability_zones" "available" {}
 
 locals {
-  cluster_name = "istio-cluster-${random_string.suffix.result}"
+  cluster_name = "sirius-b-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
@@ -17,7 +25,7 @@ resource "random_string" "suffix" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name = "istio-vpc"
+  name = "sirius-b-vpc"
   cidr = "10.0.0.0/16"
 
   azs             = data.aws_availability_zones.available.names 
