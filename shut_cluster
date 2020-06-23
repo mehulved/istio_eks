@@ -1,0 +1,24 @@
+#!/bin/bash
+echo "Setting variables for AWS credentials..."
+export AWS_PROFILE=istio
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+
+echo "Shutting down the infrastructure..."
+
+echo "Stopping cluster sirius-a..."
+cd terraform/sirius-a/
+CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-a | awk '{print $2}')
+kubectl config use-context $CONTEXT_NAME
+terraform destroy -input=false -auto-approve
+echo "Cluster sirius-a stopped."
+cd ../..
+
+echo "Stopping cluster sirius-b..."
+cd terraform/sirius-b
+CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-b | awk '{print $2}')
+kubectl config use-context $CONTEXT_NAME
+terraform destroy -input=false -auto-approve
+echo "Cluster sirius-a stopped."
+cd ../..
+
+echo "Infrastructure shutdown completed."
