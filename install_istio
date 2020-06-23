@@ -1,6 +1,6 @@
 #!/bin/bash
 
-default_profile=default
+istio_profile=default
 PROFILE=${1:-$default_profile}
 
 if [ ! -d "istio" ]
@@ -18,12 +18,32 @@ echo "Generating manifest for istio installation..."
 $ISTIO_BIN manifest generate --set profile=$PROFILE > $MANIFEST_PATH
 echo "Manifest generated in $MANIFEST_PATH"
 
-echo "Installing istio..."
-$ISTIO_BIN install --set profile=$PROFILE
-echo "Istio has been installed on your cluster."
 
-echo "Verifying istio installation..."
+echo "Installing istio on sirius-a..."
+CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-a | awk '{print $2}')
+kubectl config use-context $CONTEXT_NAME
+$ISTIO_BIN install --set profile=$PROFILE
+echo "Istio has been installed on sirius-a."
+
+echo "Verifying istio installation on sirius-a..."
 $ISTIO_BIN verify-install -f $MANIFEST_PATH
 
 echo "Enabling automatic injection of envoy sidecar proxy when deploying applications."
 kubectl label namespace default istio-injection=enabled
+
+echo "Istio setup on sirius-a."
+
+
+echo "Installing istio on sirius-b..."
+CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-b | awk '{print $2}')
+kubectl config use-context $CONTEXT_NAME
+$ISTIO_BIN install --set profile=$PROFILE
+echo "Istio has been installed on sirius-b."
+
+echo "Verifying istio installation on sirius-b..."
+$ISTIO_BIN verify-install -f $MANIFEST_PATH
+
+echo "Enabling automatic injection of envoy sidecar proxy when deploying applications."
+kubectl label namespace default istio-injection=enabled
+
+echo "Istio setup on sirius-b."
