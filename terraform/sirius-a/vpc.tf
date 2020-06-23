@@ -11,6 +11,15 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "sirius-b" {
+  backend = "s3"
+  config  = {
+    bucket = "jupiter"
+    key    = "cluster/sirius-b"
+    region = "us-east-1"
+  }
+}
+
 data "aws_availability_zones" "available" {}
 
 locals {
@@ -52,4 +61,9 @@ module "vpc" {
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
     "kubernetes.io/role/internal-elb"             = "1"
   }
+}
+
+resource "aws_vpc_peering_connection" "sirius-peering" {
+  peer_vpc_id = data.terraform_remote_state.sirius-b.outputs.vpc_id
+  vpc_id      = module.vpc.vpc_id
 }
