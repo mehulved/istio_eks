@@ -4,3 +4,4 @@
 **/kubeconfig*
 **/*.dis
 istio/
+istio-nginx/
