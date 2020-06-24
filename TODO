@@ -1,6 +1,7 @@
 TODO:
  * Setup instrumentation and dashboarding
  * Put it together in a CI/CD system
+ * Show that the traffic is going to correct cluster
 
 BUGS:
  * Currently istio will provision both the clusters if only one has been recreated.
