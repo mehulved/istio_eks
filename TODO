@@ -1,0 +1,8 @@
+TODO:
+ * Setup instrumentation and dashboarding
+ * Put it together in a CI/CD system
+
+BUGS:
+ * Currently istio will provision both the clusters if only one has been recreated.
+ * Teardown of infrastructure doesn't happen cleanly.
+ * Error handling is missing.
