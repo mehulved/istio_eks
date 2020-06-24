@@ -1,8 +1,5 @@
 #!/bin/bash
 
-istio_profile=default
-PROFILE=${1:-$default_profile}
-
 if [ ! -d "istio" ]
 then
     curl -L https://istio.io/downloadIstio | sh -
@@ -12,38 +9,48 @@ then
 fi
 
 ISTIO_BIN=./istio/bin/istioctl
-MANIFEST_PATH=/tmp/generated_manifest.yaml
 
-echo "Generating manifest for istio installation..."
-$ISTIO_BIN manifest generate --set profile=$PROFILE > $MANIFEST_PATH
-echo "Manifest generated in $MANIFEST_PATH"
+export CTX_CLUSTER1=$(kubectl config view -o jsonpath='{.contexts[0].name}')
+export CTX_CLUSTER2=$(kubectl config view -o jsonpath='{.contexts[1].name}')
+echo "Creating namespace for istio-system."
+kubectl --context=$CTX_CLUSTER1 create namespace istio-system
+kubectl --context=$CTX_CLUSTER2 create namespace istio-system
+echo "Create secrets to use CA certificate."
+kubectl --context=$CTX_CLUSTER1 create secret generic cacerts -n istio-system \
+    --from-file=istio/samples/certs/ca-cert.pem \
+    --from-file=istio/samples/certs/ca-key.pem \
+    --from-file=istio/samples/certs/root-cert.pem \
+    --from-file=istio/samples/certs/cert-chain.pem
+kubectl --context=$CTX_CLUSTER2 create secret generic cacerts -n istio-system \
+    --from-file=istio/samples/certs/ca-cert.pem \
+    --from-file=istio/samples/certs/ca-key.pem \
+    --from-file=istio/samples/certs/root-cert.pem \
+    --from-file=istio/samples/certs/cert-chain.pem
 
+echo "Installing istio..."
+$ISTIO_BIN --context=$CTX_CLUSTER1 install -f istio/manifests/examples/multicluster/values-istio-multicluster-gateways.yaml
+$ISTIO_BIN --context=$CTX_CLUSTER2 install -f istio/manifests/examples/multicluster/values-istio-multicluster-gateways.yaml
+echo "Istio has been installed."
 
-echo "Installing istio on sirius-a..."
-CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-a | awk '{print $2}')
-kubectl config use-context $CONTEXT_NAME
-$ISTIO_BIN install --set profile=$PROFILE
-echo "Istio has been installed on sirius-a."
+echo "Setting up kubedns."
+kubectl --context=$CTX_CLUSTER1 apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns
+  namespace: kube-system
+data:
+  stubDomains: |
+    {"global": ["$(kubectl get svc -n istio-system istiocoredns -o jsonpath={.spec.clusterIP})"]}
+EOF
 
-echo "Verifying istio installation on sirius-a..."
-$ISTIO_BIN verify-install -f $MANIFEST_PATH
-
-echo "Enabling automatic injection of envoy sidecar proxy when deploying applications."
-kubectl label namespace default istio-injection=enabled
-
-echo "Istio setup on sirius-a."
-
-
-echo "Installing istio on sirius-b..."
-CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-b | awk '{print $2}')
-kubectl config use-context $CONTEXT_NAME
-$ISTIO_BIN install --set profile=$PROFILE
-echo "Istio has been installed on sirius-b."
-
-echo "Verifying istio installation on sirius-b..."
-$ISTIO_BIN verify-install -f $MANIFEST_PATH
-
-echo "Enabling automatic injection of envoy sidecar proxy when deploying applications."
-kubectl label namespace default istio-injection=enabled
-
-echo "Istio setup on sirius-b."
+kubectl --context=$CTX_CLUSTER2 apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns
+  namespace: kube-system
+data:
+  stubDomains: |
+    {"global": ["$(kubectl get svc -n istio-system istiocoredns -o jsonpath={.spec.clusterIP})"]}
+EOF
