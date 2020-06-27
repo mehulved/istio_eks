@@ -5,18 +5,18 @@ export CTX_CLUSTER2=$(kubectl config view -o jsonpath='{.contexts[1].name}')
 if [ ! -d istio-nginx ]
 then
     echo "Cloning the nginx-istio example app."
-    git clone git@github.com:darrencraig/istio-nginx-example.git istio-nginx
+    git clone git@github.com:mehulved/istio-nginx.git nginx
 else
     echo "Pulling the latest code."
-    cd istio-nginx/
+    cd nginx/
     git pull origin master
     cd ..
 fi
 
 echo "Deploying nginx-istio to our cluster."
-kubectl apply -f istio-nginx/kubernetes/
+kubectl apply -f nginx/kubernetes/
 
 export GATEWAY_ADDR=$(kubectl get --context=$CTX_CLUSTER1 svc --selector=app=istio-ingressgateway -n istio-system -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
 
 sleep 30
-curl -X GET http://$GATEWAY_ADDR/example
+curl -X GET http://$GATEWAY_ADDR/
