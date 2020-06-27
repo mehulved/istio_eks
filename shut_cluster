@@ -10,6 +10,7 @@ cd terraform/sirius-a/
 CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-a | awk '{print $2}')
 kubectl config use-context $CONTEXT_NAME
 terraform destroy -input=false -auto-approve
+kubectl config delete-context $CONTEXT_NAME
 echo "Cluster sirius-a stopped."
 cd ../..
 
@@ -18,6 +19,7 @@ cd terraform/sirius-b
 CONTEXT_NAME=$(kubectl config get-contexts | grep sirius-b | awk '{print $2}')
 kubectl config use-context $CONTEXT_NAME
 terraform destroy -input=false -auto-approve
+kubectl config delete-context $CONTEXT_NAME
 echo "Cluster sirius-a stopped."
 cd ../..
 
