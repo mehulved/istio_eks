@@ -5,3 +5,4 @@
 **/*.dis
 istio/
 istio-nginx/
+nginx/
