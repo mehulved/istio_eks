@@ -18,4 +18,5 @@ kubectl apply -f istio-nginx/kubernetes/
 
 export GATEWAY_ADDR=$(kubectl get --context=$CTX_CLUSTER1 svc --selector=app=istio-ingressgateway -n istio-system -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
 
+sleep 30
 curl -X GET http://$GATEWAY_ADDR/example
