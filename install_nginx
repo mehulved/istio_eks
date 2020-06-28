@@ -2,7 +2,7 @@
 export CTX_CLUSTER1=$(kubectl config view -o jsonpath='{.contexts[0].name}')
 export CTX_CLUSTER2=$(kubectl config view -o jsonpath='{.contexts[1].name}')
 
-if [ ! -d istio-nginx ]
+if [ ! -d nginx ]
 then
     echo "Cloning the nginx-istio example app."
     git clone git@github.com:mehulved/istio-nginx.git nginx
