@@ -14,7 +14,7 @@ else
 fi
 
 echo "Deploying grafana to our cluster."
-kubectl apply -f grafana/kubernetes/
+kubectl context=$CTX_GATEWAY1 apply -f grafana/kubernetes/
 
 export GRAFANA_ADDR=$(kubectl get --context=$CTX_CLUSTER1 svc --selector=app=grafana -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
 
