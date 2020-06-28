@@ -1,0 +1,22 @@
+#!/bin/bash
+export CTX_CLUSTER1=$(kubectl config view -o jsonpath='{.contexts[0].name}')
+export CTX_CLUSTER2=$(kubectl config view -o jsonpath='{.contexts[1].name}')
+
+if [ ! -d grafana ]
+then
+    echo "Cloning the grafana app."
+    git clone git@github.com:mehulved/istio-grafana.git grafana
+else
+    echo "Pulling the latest code."
+    cd grafana/
+    git pull origin master
+    cd ..
+fi
+
+echo "Deploying grafana to our cluster."
+kubectl apply -f grafana/kubernetes/
+
+export GRAFANA_ADDR=$(kubectl get --context=$CTX_CLUSTER1 svc --selector=app=grafana -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
+
+sleep 120
+curl -X GET http://$GATEWAY_ADDR/
