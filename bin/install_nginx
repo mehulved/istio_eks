@@ -1,6 +1,9 @@
 #!/bin/bash
 export CTX_CLUSTER1=$(kubectl config view -o jsonpath='{.contexts[0].name}')
 export CTX_CLUSTER2=$(kubectl config view -o jsonpath='{.contexts[1].name}')
+export AWS_PROFILE=istio
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+
 
 if [ ! -d nginx ]
 then
@@ -22,6 +25,13 @@ sleep 30
 curl -X GET http://$GATEWAY1_ADDR/
 echo ""
 
+echo "Creating CNAME Record for Load Balancer 1."
+cp nginx/route53/create_lb.json /tmp/create_lb.json
+sed -i -e "s/\"SetIdentifier\": \"\"/\"SetIdentifier\": \"Load Balancer 1\"/" /tmp/create_lb.json
+sed -i -e "s/\"DNSName\": \"\"/\"DNSName\": \"$GATEWAY1_ADDR\"/g" /tmp/create_lb.json
+aws route53 change-resource-record-sets --hosted-zone-id Z10139812PV3UCT52QCVE --change-batch file:///tmp/create_lb.json
+
+
 echo "Deploying nginx-istio to cluster2."
 kubectl --context=$CTX_CLUSTER2 apply -f nginx/kubernetes/
 
@@ -30,3 +40,9 @@ export GATEWAY2_ADDR=$(kubectl get --context=$CTX_CLUSTER2 svc --selector=app=is
 sleep 30
 curl -X GET http://$GATEWAY2_ADDR/
 echo ""
+
+echo "Creating CNAME Record for Load Balancer 2."
+cp nginx/route53/create_lb.json /tmp/create_lb.json
+sed -i -e "s/\"SetIdentifier\": \"\"/\"SetIdentifier\": \"Load Balancer 2\"/" /tmp/create_lb.json
+sed -i -e "s/\"DNSName\": \"\"/\"DNSName\": \"$GATEWAY2_ADDR\"/g" /tmp/create_lb.json
+aws route53 change-resource-record-sets --hosted-zone-id Z10139812PV3UCT52QCVE --change-batch file:///tmp/create_lb.json
